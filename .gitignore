@@ -1,0 +1,13 @@
+# secrets
+.env
+
+# data and outputs
+data/
+results/
+*.pkl
+*.npy
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
