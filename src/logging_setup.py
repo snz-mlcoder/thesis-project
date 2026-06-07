@@ -8,12 +8,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
-from src.config import LOG_DIR, LOG_LEVEL, LOG_FORMAT
-
 
 def setup_logging(
     logger_name: str,
-    log_level: str = LOG_LEVEL,
+    log_level: str = "INFO",
     log_to_file: bool = True,
     log_to_console: bool = True
 ) -> logging.Logger:
@@ -40,7 +38,9 @@ def setup_logging(
     if logger.handlers:
         return logger
     
-    formatter = logging.Formatter(LOG_FORMAT)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     
     # Console handler
     if log_to_console:
@@ -49,17 +49,23 @@ def setup_logging(
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
     
-    # File handler
+    # File handler (optional)
     if log_to_file:
-        log_dir = Path(LOG_DIR)
-        log_dir.mkdir(exist_ok=True, parents=True)
-        
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = log_dir / f"{logger_name.replace('.', '_')}_{timestamp}.log"
-        
-        file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
-        file_handler.setLevel(getattr(logging, log_level.upper()))
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        try:
+            from src.config import LOG_DIR  # Import here to avoid circular import
+            
+            log_dir = Path(LOG_DIR)
+            log_dir.mkdir(exist_ok=True, parents=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = log_dir / f"{logger_name.replace('.', '_')}_{timestamp}.log"
+            
+            file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+            file_handler.setLevel(getattr(logging, log_level.upper()))
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except Exception as e:
+            # اگر log file نتونست ساخت بشه، فقط console logging کن
+            print(f"Warning: Could not set up file logging: {e}")
     
     return logger
