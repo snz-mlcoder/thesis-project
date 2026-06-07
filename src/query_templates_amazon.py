@@ -1,205 +1,153 @@
-# query_templates_amazon.py
-# ambiguous Query and intent-based for Amazon Clothing/Shoes/Jewelry
-# not directly based on category- using mood/occasion/intent 
-#ambiguous queries based on category keywords, with some occasion-based fallbacks for more ambiguity
-import random
+"""
+Query templates for Amazon product classification.
 
-# ── Category → ambiguous queries ────────────────────────
-CATEGORY_TO_QUERIES = {
-    # Clothing
-    "Dresses": [
-        "I need something to wear to a special occasion",
-        "I want to look nice for an event",
-        "I'm looking for something elegant to wear out",
-    ],
-    "Casual": [
-        "I want something comfortable for everyday wear",
-        "I need something relaxed and easy to wear",
-        "I'm looking for something simple and comfortable",
-    ],
-    "T-Shirts": [
-        "I need something basic to wear around the house",
-        "I want something simple and comfortable",
-        "I'm looking for everyday basics",
-    ],
-    "Blouses": [
-        "I need something professional to wear to work",
-        "I want to look put-together without being too formal",
-        "I'm looking for something smart-casual",
-    ],
-    "Tunics": [
-        "I want something loose and comfortable",
-        "I need something that works for both casual and semi-formal",
-        "I'm looking for something flowy and relaxed",
-    ],
-    "Skirts": [
-        "I want something feminine to wear out",
-        "I need something versatile for different occasions",
-        "I'm looking for a fun and stylish bottom",
-    ],
-    "Jeans": [
-        "I need a reliable pair of bottoms for everyday use",
-        "I want something casual and durable",
-        "I'm looking for something I can wear anywhere",
-    ],
-    "Swimsuits": [
-        "I'm going to the beach and need something to wear",
-        "I want something stylish for a pool day",
-        "I need something for a summer vacation",
-    ],
-    "Cover-Ups": [
-        "I need something light to wear over my swimsuit",
-        "I want a stylish layer for a beach day",
-        "I'm looking for something breezy for summer",
-    ],
-    "Activewear": [
-        "I need something to work out in",
-        "I want comfortable clothes for the gym",
-        "I'm looking for athletic wear",
-    ],
-    "Running": [
-        "I need something for my morning runs",
-        "I want gear for outdoor exercise",
-        "I'm looking for performance sportswear",
-    ],
-    "Lingerie": [
-        "I need something comfortable for everyday wear underneath",
-        "I'm looking for something that fits well and feels good",
-        "I want something practical and comfortable",
-    ],
-    "Bras": [
-        "I need comfortable everyday support",
-        "I'm looking for something that fits perfectly",
-        "I want something practical for daily use",
-    ],
+Defines intent-based queries for various product categories with ambiguous questions,
+plus multi-category combinations for testing hybrid recommendations.
+"""
 
-    # Shoes
-    "Shoes": [
-        "I need a new pair of shoes",
-        "I'm looking for something comfortable to walk in",
-        "I want shoes that go with everything",
+CATEGORY_QUERIES = {
+    "electronics": [
+        "Is this a device or electronic gadget?",
+        "Does it require batteries or a power source?",
+        "Is this used for computing or digital processing?",
     ],
-    "Sandals": [
-        "I want something open and breezy for warm weather",
-        "I need comfortable shoes for summer",
-        "I'm looking for easy slip-on shoes",
+    "books": [
+        "Is this a physical book or written publication?",
+        "Is it educational or informational in nature?",
+        "Would you read this for entertainment or learning?",
     ],
-    "Flats": [
-        "I want comfortable shoes that still look nice",
-        "I need something I can walk in all day",
-        "I'm looking for practical yet stylish shoes",
+    "clothing": [
+        "Is this a wearable item of apparel?",
+        "Is it designed for a specific season or weather?",
+        "Is this casual wear or formal attire?",
     ],
-    "Pumps": [
-        "I need shoes for a formal occasion",
-        "I want to look polished and professional",
-        "I'm looking for elegant shoes for an event",
+    "furniture": [
+        "Is this a piece of home or office furniture?",
+        "Would you place this indoors for functional use?",
+        "Is this designed for sitting, lying, or storage?",
     ],
-    "Sneakers": [
-        "I want something casual and comfortable to walk around in",
-        "I need everyday shoes that are easy to wear",
-        "I'm looking for stylish yet practical footwear",
+    "sports": [
+        "Is this item related to physical activity or sports?",
+        "Would you use this for exercise or athletic training?",
+        "Is this sports equipment or workout gear?",
     ],
-    "Hiking": [
-        "I need shoes for outdoor activities",
-        "I'm going on a trail and need proper footwear",
-        "I want durable shoes for nature walks",
+    "toys": [
+        "Is this designed for children to play with?",
+        "Is it primarily for entertainment rather than functionality?",
+        "Would you classify this as a toy or game?",
     ],
-    "Boots": [
-        "I need shoes for colder weather",
-        "I want something sturdy and stylish",
-        "I'm looking for boots I can wear in fall and winter",
+    "beauty": [
+        "Is this a cosmetic or personal care product?",
+        "Would you use this for skincare or grooming?",
+        "Is this related to beauty, wellness, or hygiene?",
     ],
-
-    # Bags & Accessories
-    "Handbags": [
-        "I need a bag for going out",
-        "I want something stylish to carry my things in",
-        "I'm looking for a new everyday bag",
+    "home": [
+        "Is this designed for home décor or improvement?",
+        "Would you use this inside your living space?",
+        "Is this for organizing or beautifying your home?",
     ],
-    "Crossbody Bags": [
-        "I need a hands-free bag for travel",
-        "I want something practical and stylish",
-        "I'm looking for a bag I can wear all day",
+    "kitchen": [
+        "Is this a kitchen appliance or cooking tool?",
+        "Would you use this for food preparation?",
+        "Is this related to cooking, baking, or dining?",
     ],
-    "Wallets": [
-        "I need something to organize my cards and cash",
-        "I want a compact and practical wallet",
-        "I'm looking for a slim everyday wallet",
+    "garden": [
+        "Is this for outdoor gardening or landscaping?",
+        "Would you use this to grow plants or flowers?",
+        "Is this gardening equipment or outdoor tool?",
     ],
-    "Jewelry": [
-        "I need an accessory to complete my outfit",
-        "I want something elegant to wear",
-        "I'm looking for a nice piece of jewelry",
+    "automotive": [
+        "Is this related to cars or vehicle maintenance?",
+        "Would you use this in or on your vehicle?",
+        "Is this automotive parts or car accessories?",
     ],
-    "Watches": [
-        "I want something stylish for my wrist",
-        "I need an accessory that works for everyday wear",
-        "I'm looking for a watch that goes with everything",
+    "pet": [
+        "Is this product for pets or animals?",
+        "Would you use this to care for a pet?",
+        "Is this pet food, toys, or pet accessories?",
     ],
-
-    # Generic fallbacks
-    "Women": [
-        "I'm looking for something stylish for women",
-        "I want a nice women's clothing item",
-        "I need something fashionable to wear",
+    "office": [
+        "Is this for office work or professional use?",
+        "Would you use this at a desk or workspace?",
+        "Is this office supplies or equipment?",
     ],
-    "Men": [
-        "I'm looking for something casual for men",
-        "I want a practical men's clothing item",
-        "I need something comfortable and stylish for men",
+    "music": [
+        "Is this related to music or audio?",
+        "Would you use this to listen to or create music?",
+        "Is this a musical instrument or audio equipment?",
     ],
-    "Gift": [
-        "I want to buy a gift for someone special",
-        "I'm looking for something nice as a present",
-        "I need a thoughtful gift for a friend",
+    "health": [
+        "Is this related to health or medical care?",
+        "Would you use this for fitness or wellness?",
+        "Is this health supplements or medical equipment?",
+    ],
+    "outdoor": [
+        "Is this for outdoor activities or camping?",
+        "Would you use this outside or in nature?",
+        "Is this camping, hiking, or outdoor gear?",
+    ],
+    "photography": [
+        "Is this related to photography or image capture?",
+        "Would you use this to take photos or videos?",
+        "Is this photography equipment or camera accessories?",
+    ],
+    "luggage": [
+        "Is this for travel or storage on the go?",
+        "Would you use this to carry items while traveling?",
+        "Is this luggage, bags, or travel accessories?",
     ],
 }
 
-# ── Occasion-based queries (for more ambiguity) ────────
-OCCASION_QUERIES = [
-    "I have a wedding coming up and need something to wear",
-    "I need an outfit for a job interview",
-    "I want something casual for a weekend trip",
-    "I'm going on a date and need to look good",
-    "I need comfortable clothes for working from home",
-    "I want a gift for my wife's birthday",
-    "I need something for a beach vacation",
-    "I'm looking for workout clothes",
-    "I want something warm for winter",
-    "I need shoes that go with everything",
+# Multi-category combinations for testing
+MULTI_CATEGORY_QUERIES = [
+    ("electronics", "sports", "Is this an electronic sports device or fitness tracker?"),
+    ("beauty", "health", "Is this a beauty or health/wellness product?"),
+    ("home", "kitchen", "Is this for the kitchen or home decoration?"),
+    ("books", "education", "Is this an educational or learning resource?"),
+    ("toys", "games", "Is this a toy or board game?"),
+    ("office", "electronics", "Is this electronic office equipment?"),
+    ("outdoor", "sports", "Is this outdoor sports or camping gear?"),
+    ("pet", "toys", "Is this a pet toy or pet accessory?"),
+    ("automotive", "tools", "Is this an automotive tool or car maintenance item?"),
+    ("music", "electronics", "Is this an electronic musical device?"),
 ]
 
-
-def get_query_for_item(category_str: str, random_pick: bool = True) -> str:
-    """
-    category_str like 'Clothing > Dresses > Casual'
-    finds the last keyword and returns an appropriate query.
-    """
-    parts = [p.strip() for p in category_str.replace('>', '/').split('/')]
-
-    # check from last to first to find the most specific match
-    for part in reversed(parts):
-        for key, queries in CATEGORY_TO_QUERIES.items():
-            if key.lower() in part.lower():
-                return random.choice(queries) if random_pick else queries[0]
-
-    # fallback: occasion-based query
-    return random.choice(OCCASION_QUERIES) if random_pick else OCCASION_QUERIES[0]
+# Helper function to get a random query
+def get_query(category: str) -> str:
+    """Get a query for a specific category."""
+    if category not in CATEGORY_QUERIES:
+        raise ValueError(f"Unknown category: {category}")
+    return CATEGORY_QUERIES[category][0]  # Return first query
 
 
-if __name__ == '__main__':
-    random.seed(42)
-    test_cases = [
-        "Clothing > Dresses > Casual",
-        "Shoes > Sandals > Flats",
-        "Women > Handbags & Wallets > Crossbody Bags",
-        "Athletic > Running > Road Running",
-        "Clothing > Tops, Tees & Blouses > T-Shirts",
-        "Lingerie > Bras > Everyday Bras",
-    ]
-    print('Category → Ambiguous Query:')
-    print()
-    for c in test_cases:
-        print(f'  {c}')
-        print(f'  → "{get_query_for_item(c)}"')
-        print()
+def get_all_queries(category: str) -> list:
+    """Get all queries for a specific category."""
+    if category not in CATEGORY_QUERIES:
+        raise ValueError(f"Unknown category: {category}")
+    return CATEGORY_QUERIES[category]
+
+
+def get_multi_category_query(category1: str, category2: str) -> str:
+    """Get a query for a combination of two categories."""
+    for c1, c2, query in MULTI_CATEGORY_QUERIES:
+        if (c1 == category1 and c2 == category2) or (c1 == category2 and c2 == category1):
+            return query
+    raise ValueError(f"Unknown category combination: {category1}, {category2}")
+
+
+if __name__ == "__main__":
+    print("Amazon Product Category Queries")
+    print("=" * 60)
+    
+    for category, queries in CATEGORY_QUERIES.items():
+        print(f"\n🛍️  {category.upper()}")
+        for i, query in enumerate(queries, 1):
+            print(f"   {i}. {query}")
+    
+    print("\n\n" + "=" * 60)
+    print("Multi-Category Combinations")
+    print("=" * 60)
+    
+    for category1, category2, query in MULTI_CATEGORY_QUERIES:
+        print(f"\n{category1.upper()} + {category2.upper()}")
+        print(f"  {query}")
