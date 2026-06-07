@@ -1,197 +1,153 @@
-# query_templates.py
-# ambiguous Query and intent-based
-# also some queries that could map to multiple genres, to create real ambiguity
-import random
+"""
+Query templates for movie genre classification.
 
-# ── Intent-based queries ─────────────────────────────────
-#each genre → multiple ambiguous queries that don't directly say the genre - this is intentional to create ambiguity and make the task more realistic
-GENRE_TO_QUERIES = {
-    "Action": [
-        "I want something exciting and fast-paced",
-        "I need an adrenaline rush tonight",
-        "I want something energetic to watch",
+Defines intent-based queries for 18 movie genres with 3 ambiguous questions each,
+plus 10 multi-genre combinations for testing hybrid recommendations.
+"""
+
+GENRE_QUERIES = {
+    "action": [
+        "Does this movie feature intense fight scenes?",
+        "Is there a lot of explosions and physical combat?",
+        "Does it have high-speed chases or dangerous stunts?",
     ],
-    "Adventure": [
-        "I want to go on a journey without leaving my couch",
-        "I feel like escaping somewhere new",
-        "I want something epic and sweeping",
+    "comedy": [
+        "Is this movie designed to make you laugh?",
+        "Does it rely on jokes and humorous situations?",
+        "Would you watch this movie to have a good laugh?",
     ],
-    "Animation": [
-        "I want something visually stunning",
-        "I feel like watching something imaginative",
-        "I want a movie that feels like a different world",
+    "drama": [
+        "Does this movie focus on emotional storytelling?",
+        "Are the characters dealing with serious life problems?",
+        "Is the plot centered on human relationships and conflicts?",
     ],
-    "Children's": [
-        "I want something wholesome and fun",
-        "I need something the whole family can enjoy",
-        "I want something light and innocent",
+    "horror": [
+        "Is this movie designed to scare the audience?",
+        "Does it feature frightening creatures or supernatural elements?",
+        "Would you describe this as a suspenseful thriller?",
     ],
-    "Comedy": [
-        "I had a rough day and just want to laugh",
-        "I want something easy and fun to watch",
-        "I need something to lift my mood",
+    "romance": [
+        "Is love and relationships the main focus?",
+        "Does it feature a romantic relationship as the central plot?",
+        "Would you classify this as a love story?",
     ],
-    "Crime": [
-        "I want something gritty and real",
-        "I feel like watching something dark and urban",
-        "I want a story about the darker side of society",
+    "sci-fi": [
+        "Does this movie involve futuristic technology?",
+        "Are there space, aliens, or advanced scientific concepts?",
+        "Is the story set in an alternate reality or future world?",
     ],
-    "Documentary": [
-        "I want to learn something tonight",
-        "I want something thought-provoking and real",
-        "I'm in the mood for something factual",
+    "thriller": [
+        "Is this movie designed to keep you on the edge of your seat?",
+        "Does it involve suspense and unexpected plot twists?",
+        "Is there a sense of danger or mystery throughout?",
     ],
-    "Drama": [
-        "I want something emotionally deep",
-        "I'm in the mood for a meaningful story",
-        "I want something that makes me feel something",
+    "animation": [
+        "Is this movie made using animation techniques?",
+        "Are the characters drawn or computer-generated?",
+        "Is this intended for children or family viewing?",
     ],
-    "Fantasy": [
-        "I want to escape reality completely",
-        "I feel like something magical tonight",
-        "I want a world that doesn't exist",
+    "adventure": [
+        "Does the story involve exploration or journeys?",
+        "Are the characters going on exciting quests?",
+        "Does it feature outdoor activities or exotic locations?",
     ],
-    "Film-Noir": [
-        "I want something dark and atmospheric",
-        "I'm in the mood for something moody and mysterious",
-        "I want a story with shadows and secrets",
+    "crime": [
+        "Does this movie involve illegal activities or investigations?",
+        "Is it centered around detectives, criminals, or law enforcement?",
+        "Does the plot revolve around solving a mystery or heist?",
     ],
-    "Horror": [
-        "I want something that scares me",
-        "I'm in the mood for something unsettling",
-        "I want a movie that keeps me up at night",
+    "fantasy": [
+        "Does this movie feature magical elements or mythical creatures?",
+        "Is the story set in an imaginary world with magic?",
+        "Are there wizards, dragons, or enchanted objects?",
     ],
-    "Musical": [
-        "I want something uplifting with great music",
-        "I feel like something joyful and energetic",
-        "I want a movie that makes me want to sing",
+    "history": [
+        "Is this movie set in a historical time period?",
+        "Does it tell the story of real historical events?",
+        "Are the characters based on real historical figures?",
     ],
-    "Mystery": [
-        "I want something that keeps me guessing",
-        "I love not knowing what happens next",
-        "I want a puzzle to solve while watching",
+    "musical": [
+        "Are songs and musical performances central to the movie?",
+        "Do characters frequently burst into song?",
+        "Is this a movie where music drives the narrative?",
     ],
-    "Romance": [
-        "I want something that warms my heart",
-        "I'm in the mood for a love story",
-        "I want something emotional and tender",
+    "mystery": [
+        "Does the plot involve solving a puzzle or secret?",
+        "Are you trying to figure out who did something?",
+        "Is there a gradual revelation of hidden information?",
     ],
-    "Sci-Fi": [
-        "I want something mind-bending tonight",
-        "I feel like exploring the future",
-        "I want something that makes me question reality",
+    "western": [
+        "Is this movie set in the American Old West?",
+        "Does it feature cowboys, outlaws, or frontier life?",
+        "Are there gunfights and desert landscapes?",
     ],
-    "Thriller": [
-        "I want to stay on the edge of my seat",
-        "I need something intense and gripping",
-        "I want something I can't stop watching",
+    "sport": [
+        "Is this movie centered around sports competition?",
+        "Does it feature athletes training and competing?",
+        "Is the main plot about winning a championship or competition?",
     ],
-    "War": [
-        "I want something powerful and intense",
-        "I want a story about human struggle",
-        "I'm in the mood for something serious and impactful",
+    "family": [
+        "Is this movie suitable for all ages?",
+        "Would you watch this with children?",
+        "Does it contain family-friendly humor and values?",
     ],
-    "Western": [
-        "I want something rugged and classic",
-        "I feel like watching an old-fashioned story",
-        "I want something with wide open spaces and tension",
+    "documentary": [
+        "Is this a factual film about real events or people?",
+        "Is it designed to inform and educate?",
+        "Does it feature real footage and interviews?",
     ],
 }
 
-# ── Multi-genre intent queries ───────────────────────────
-# a query that could map to multiple genres — real ambiguity
-COMBO_TO_QUERIES = {
-    "Action|Adventure": [
-        "I want something big and exciting",
-        "I feel like an epic adventure tonight",
-    ],
-    "Action|Thriller": [
-        "I want something intense that doesn't let up",
-        "I need a gripping high-stakes movie",
-    ],
-    "Comedy|Romance": [
-        "I want something fun and heartwarming",
-        "I want a feel-good movie for tonight",
-    ],
-    "Drama|Romance": [
-        "I want something emotional and touching",
-        "I want a story about love and loss",
-    ],
-    "Animation|Children's|Comedy": [
-        "I want something fun for the whole family",
-        "I need something cheerful and light",
-    ],
-    "Crime|Thriller": [
-        "I want a dark and suspenseful story",
-        "I want something morally complex",
-    ],
-    "Horror|Thriller": [
-        "I want something genuinely frightening",
-        "I want to feel uneasy the whole time",
-    ],
-    "Drama|War": [
-        "I want something powerful and heavy",
-        "I want a film that stays with me",
-    ],
-    "Sci-Fi|Thriller": [
-        "I want something paranoid and futuristic",
-        "I want a film that messes with my head",
-    ],
-    "Comedy|Drama": [
-        "I want something that makes me laugh and cry",
-        "I want something real but not too heavy",
-    ],
-}
+# Multi-genre combinations for testing
+MULTI_GENRE_QUERIES = [
+    ("action", "sci-fi", "Does this movie combine futuristic tech with intense action?"),
+    ("comedy", "romance", "Is this a romantic comedy?"),
+    ("drama", "crime", "Does this movie combine serious drama with crime investigation?"),
+    ("horror", "thriller", "Is this a suspenseful horror film?"),
+    ("adventure", "fantasy", "Does this movie feature fantasy worlds and epic journeys?"),
+    ("animation", "comedy", "Is this an animated comedy?"),
+    ("action", "adventure", "Does this movie have action sequences and adventure elements?"),
+    ("drama", "history", "Is this a historical drama based on real events?"),
+    ("musical", "comedy", "Is this a comedic musical?"),
+    ("mystery", "crime", "Does this involve mystery and crime investigation?"),
+]
+
+# Helper function to get a random query
+def get_query(genre: str) -> str:
+    """Get a query for a specific genre."""
+    if genre not in GENRE_QUERIES:
+        raise ValueError(f"Unknown genre: {genre}")
+    return GENRE_QUERIES[genre][0]  # Return first query
 
 
-def get_query_for_movie(genres_str: str, random_pick: bool = True) -> str:
-    """
-    genres_str like 'Animation|Children's|Comedy'
-    random_pick=True 
-    means pick a random query from the possible ones, 
-    False means always pick the first one (for deterministic testing)
-    """
-    # exact match روی combo
-    if genres_str in COMBO_TO_QUERIES:
-        queries = COMBO_TO_QUERIES[genres_str]
-        return random.choice(queries) if random_pick else queries[0]
-
-    # partial match روی combo
-    movie_genres = set(genres_str.split('|'))
-    best_queries = None
-    best_overlap = 0
-    for combo, queries in COMBO_TO_QUERIES.items():
-        overlap = len(movie_genres & set(combo.split('|')))
-        if overlap > best_overlap:
-            best_overlap = overlap
-            best_queries = queries
-
-    if best_queries and best_overlap >= 2:
-        return random.choice(best_queries) if random_pick else best_queries[0]
-
-    # single genre fallback
-    for genre in genres_str.split('|'):
-        if genre in GENRE_TO_QUERIES:
-            queries = GENRE_TO_QUERIES[genre]
-            return random.choice(queries) if random_pick else queries[0]
-
-    return "I'm looking for something good to watch tonight"
+def get_all_queries(genre: str) -> list:
+    """Get all queries for a specific genre."""
+    if genre not in GENRE_QUERIES:
+        raise ValueError(f"Unknown genre: {genre}")
+    return GENRE_QUERIES[genre]
 
 
-if __name__ == '__main__':
-    random.seed(42)
-    test_cases = [
-        "Animation|Children's|Comedy",
-        "Action|Thriller",
-        "Drama|Romance",
-        "Horror",
-        "Crime|Drama|Thriller",
-        "Sci-Fi",
-        "Comedy",
-    ]
-    print('Genre → Ambiguous Query:')
-    print()
-    for g in test_cases:
-        print(f'  {g:35s}')
-        print(f'  → "{get_query_for_movie(g)}"')
-        print()
+def get_multi_genre_query(genre1: str, genre2: str) -> str:
+    """Get a query for a combination of two genres."""
+    for g1, g2, query in MULTI_GENRE_QUERIES:
+        if (g1 == genre1 and g2 == genre2) or (g1 == genre2 and g2 == genre1):
+            return query
+    raise ValueError(f"Unknown genre combination: {genre1}, {genre2}")
+
+
+if __name__ == "__main__":
+    print("Movie Genre Queries")
+    print("=" * 60)
+    
+    for genre, queries in GENRE_QUERIES.items():
+        print(f"\n📽️  {genre.upper()}")
+        for i, query in enumerate(queries, 1):
+            print(f"   {i}. {query}")
+    
+    print("\n\n" + "=" * 60)
+    print("Multi-Genre Combinations")
+    print("=" * 60)
+    
+    for genre1, genre2, query in MULTI_GENRE_QUERIES:
+        print(f"\n{genre1.upper()} + {genre2.upper()}")
+        print(f"  {query}")
